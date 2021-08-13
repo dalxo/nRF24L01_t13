@@ -41,8 +41,8 @@ and which "pin conservation" features out of four are used:
 1) Shared CE and CSN pins: 
 Both interface signals are connected to a single pin:
 
-                ??????? CSN nRF
-   MCU PINx ??????????? CE nRF
+                |----- CSN nRF
+   MCU PINx ----*----- CE nRF  
 
 This is useful if the MCU is used for transmissions of data (sensors) to the central hub. Between transmissions the module 
 is in the power saving mode (CE == 0, i.e. radio is off)  to conserve energy. 
@@ -54,8 +54,8 @@ The feature is enabled by macro: #define NRF24L01_SHARED_CE_CSN
 We do not read anything from the nRF module. Entire communication on SPI bus is one-directional
 from the MCU to nRF. Signal MISO is not connected to the MCU, thus this saves 1 pin on MCU.
 
-                    x?? MISO nRF
-   MCU PINx ??????????? MOSI nRF
+                    x-- MISO nRF
+   MCU PINx ----------- MOSI nRF
 
 
 This is useful for applications that only transmit data, e.g. sensors.
@@ -67,9 +67,9 @@ For situations where MCU needs bi-directional access to the nRF radio module, e.
 or receiving data. Rather than consuming additional pin on MCU (beside MOSI), both MISO and MOSI 
 can be connected to a single MCU pin via a resistor. 
 
-               4k7 ? R ? 10k
-                ???\/\/\??? MISO nRF
-   MCU PINx ??????????????? MOSI nRF
+              4k7 <= R <= 10k
+                |--\/\/\-- MISO nRF
+   MCU PINx ----*--------- MOSI nRF
 
 The HW solution was proposed by Nerd Ralph:
 http://nerdralph.blogspot.com/2015/05/nrf24l01-control-with-2-mcu-pins-using.html
@@ -83,8 +83,8 @@ In this case we have separate pins for MOSI and MISO signals. This does not cons
 Nevertheless, the footprint of this solution is 10 bytes (5 instructions) smaller than shared pins. 
 This is useful in application where the code footprint is more critical than number of used pins.
 
-   MCU PINx ??????????? MISO nRF
-   MCU PINy ??????????? MOSI nRF
+   MCU PINx ----------- MISO nRF
+   MCU PINy ----------- MOSI nRF
 
 
 This feature is the default configuration - unless it is overridden by macros from (2) or (3) feature.
