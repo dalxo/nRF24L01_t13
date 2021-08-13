@@ -1,0 +1,15 @@
+
+Release/main.d
+Release/main.o
+Release/makedep.mk
+Release/Makefile
+Release/nRF24L01.d
+Release/nRF24L01.o
+Release/nRF24L01_t13.eep
+Release/nRF24L01_t13.elf
+Release/nRF24L01_t13.hex
+Release/nRF24L01_t13.lss
+Release/nRF24L01_t13.map
+Release/nRF24L01_t13.srec
+nRF24L01_t13.componentinfo.xml
+nRF24L01_t13.cproj
