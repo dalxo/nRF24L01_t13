@@ -174,7 +174,7 @@ it will mess with registers. There should never be such a situation where this f
 /* data: byte to be sent out on the bus                                 */
 /* return: byte received from the nRF                                   */
 /* Note 1: Depending on the PIN configuration, this method has 3        */
-/*		different implementations.                                      */
+/*         different implementations.                                   */
 /* Note 2: r25 is internally used without saving                        */
 /************************************************************************/
 uint8_t shiftOutByte(uint8_t data) {
@@ -300,7 +300,7 @@ void nrf24_init(void) {
 }
 
 /************************************************************************/
-/* Send SPI command	to the nRF                                          */
+/* Send SPI command to the nRF                                          */
 /* cmd: SPI command to be issued                                        */
 /************************************************************************/
 void nrf24_cmd(uint8_t cmd) {
