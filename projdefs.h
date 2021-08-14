@@ -42,7 +42,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
 /************************************************************************/
-/* Feature configuration for nRF24L01 driver					*/
+/* Feature configuration for nRF24L01 driver                            */
 /************************************************************************/
 #define NRF24L01_SHARED_CE_CSN
 
@@ -51,7 +51,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
 /************************************************************************/
-/* Pins configuration for nRF24L01 driver					*/
+/* Pins configuration for nRF24L01 driver                               */
 /************************************************************************/
 #define NRF24L01_PORT		PORTB
 #define NRF24L01_DDR		DDRB
@@ -72,6 +72,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
 /************************************************************************/
-/* Pin for LED indicator												*/
+/* Pin for LED indicator                                                */
 /************************************************************************/
 #define LED_PIN		PB3

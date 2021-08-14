@@ -131,7 +131,7 @@ void testSend() {
 
 #if	!defined(NRF24L01_DO_NOT_USE_MISO)
 /************************************************************************/
-/* Periodically (0.5 seconds) checks for reception of a message.		*/
+/* Periodically (0.5 seconds) checks for reception of a message.        */
 /* It sets LED pin to the state of the LSB of the first byte.           */
 /************************************************************************/
 void testRecv() {

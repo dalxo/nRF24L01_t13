@@ -164,7 +164,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define NRF24_PIPE_6		0x20
 
 /************************************************************************/
-/* API																	*/
+/* API                                                                  */
 /************************************************************************/
 
 void nrf24_init(void);
