@@ -30,10 +30,13 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-/*
+/************************************************************************
  * nRF24L01_t13.c
- *
- */ 
+ * Example applications to send/receive 2 bytes messages via nRF24L01 driver. 
+ * The driver is configured for shared CS and CSN pins (feature 1) and 
+ * shared MISO and MOSI pins (feature 3) - see nRF24L01.c for explanation.
+ * For detailed pin configuration see definitions in "projdefs.h".
+************************************************************************/
 
 #include <avr/io.h>
 #include <util/delay.h>
@@ -60,32 +63,38 @@ void testSend(void);
 	void testRecv(void);
 #endif
 
-int main(void)
-{
+/************************************************************************/
+/* Common initialization and config for send and receive applications   */
+/************************************************************************/
+int main(void) {
 	LED_CLR();
-	NRF24L01_DDR |= _BV(LED_PIN);	// set output dir on LED pin
+	NRF24L01_DDR |= _BV(LED_PIN);	// set LED pin dir to output
 	
 	nrf24_init(); // initialize radio (UNDEFINED ==> POWER ON RESET ==> POWER DOWN)
 	
-	nrf24_writeReg(W_REGISTER | RF_CH,		CHANNEL);
-	nrf24_writeReg(W_REGISTER | RF_SETUP,	NRF24_PWR_MAX | NRF24_SPEED_250kbps); // 0dbm TX power, 250kbps
+	nrf24_writeReg(W_REGISTER | RF_CH,    CHANNEL);
+	nrf24_writeReg(W_REGISTER | RF_SETUP, NRF24_PWR_MAX | NRF24_SPEED_250kbps); // 0dbm TX power, 250kbps
 	
-	nrf24_writeReg(W_REGISTER | EN_RXADDR,	NRF24_PIPE_0);	// enable RX in pipe 0 for ACK packet
-	nrf24_writeReg(W_REGISTER | DYNPD,		NRF24_PIPE_0);   // enable dynamic payload in pipe 0	
-	nrf24_writeReg(W_REGISTER | FEATURE,	NRF24_FEATURE_EN_DPL); // enable dynamic payload length
+	nrf24_writeReg(W_REGISTER | EN_RXADDR, NRF24_PIPE_0);	// enable RX in pipe 0 for ACK packet
+	nrf24_writeReg(W_REGISTER | DYNPD,     NRF24_PIPE_0);   // enable dynamic payload in pipe 0	
+	nrf24_writeReg(W_REGISTER | FEATURE,   NRF24_FEATURE_EN_DPL); // enable dynamic payload length
 
-	nrf24_writeRegs(W_REGISTER | TX_ADDR, PIPE0_ADDRESS, 5);	// target pipe 0 address
+	nrf24_writeRegs(W_REGISTER | TX_ADDR,  PIPE0_ADDRESS, 5);	// target pipe 0 address
 	nrf24_writeRegs(W_REGISTER | RX_ADDR_P0, PIPE0_ADDRESS, 5);	// RX address on pipe 0
 
 	nrf24_cmd(FLUSH_TX); // clean TX FIFOs thoroughly
 	nrf24_cmd(FLUSH_RX); // clean RX FIFOs thoroughly
 	//LED_SET();
 	
+	// comment/uncomment following functions based on how MCU should act (either sender or receiver)
 	//testSend();	
 	testRecv();
 }
 
-
+/************************************************************************/
+/* Periodically (3 seconds) send a message of 2 bytes.                  */
+/* The first byte is incremented, the second one is decremented.        */
+/************************************************************************/
 void testSend() {
 	uint8_t msg[MAX_BUFF_SIZE] = {0, 0};
 	
@@ -121,11 +130,15 @@ void testSend() {
 }
 
 #if	!defined(NRF24L01_DO_NOT_USE_MISO)
+/************************************************************************/
+/* Periodically (0.5 seconds) checks for reception of a message.		*/
+/* It sets LED pin to the state of the LSB of the first byte.           */
+/************************************************************************/
 void testRecv() {
 	uint8_t msg[NRF24_MAX_SIZE]; // in reality a smaller size is sufficient 
 
-	nrf24_writeReg(W_REGISTER | EN_AA,		NRF24_PIPE_0);	// en autoack
-	nrf24_writeReg(W_REGISTER | NRF_STATUS, NRF24_STATUS_CLEAR_ALL);	// clear status
+	nrf24_writeReg(W_REGISTER | EN_AA,      NRF24_PIPE_0);  // en autoack
+	nrf24_writeReg(W_REGISTER | NRF_STATUS, NRF24_STATUS_CLEAR_ALL);  // clear status
 	
 	// set RX mode, enable CRC with 2 bytes, mask all IRQs, power on nRF radio (POWER DOWN ==> STANDBY-1)
 	nrf24_writeReg(W_REGISTER | NRF_CONFIG,
@@ -141,8 +154,8 @@ void testRecv() {
 		if( status & NRF24_STATUS_RX_DR ) {
 			
 			// read everything what has been received from RX FIFO
-			// (make sure you everything from RX FIFO otherwise RX FIFO will overflow eventually)
-			// (if you are lazy, you can always do FLUSH_RX after each read but you loose unprocessed frames RX has 3 FIFOs)
+			// (make sure you read everything from RX FIFO otherwise RX FIFO will overflow eventually)
+			// (if you are lazy, you can always do FLUSH_RX after each read but you loose unprocessed frames, RX has 3 FIFOs)
 			nrf24_readRegs(R_RX_PAYLOAD, msg, nrf24_readReg( R_RX_PL_WID )); 			
 			
 			nrf24_writeReg(W_REGISTER | NRF_STATUS, NRF24_STATUS_CLEAR_ALL); // clear received flag

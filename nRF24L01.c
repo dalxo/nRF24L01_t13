@@ -129,8 +129,8 @@ The init will configure I/O pins of the MCU according to selected features.
 
 Afterwards, any fcn from API can be used without any restriction and in unrestricted order.
 The exception is [uint8_t shiftOutByte(uint8_t data)] which is only for internal (private) use. It assumes certain
-usage of register by a caller fcn. Unless you really know what you do - do not call this fcn directly. 
-There should never be such a situation where this fcn is called.
+usage of registers by a caller fcn. Unless you really know what you do - do not call this fcn directly otherwise
+it will mess with registers. There should never be such a situation where this fcn is called directly from API.
 
 ***************************************************************************************/
 
@@ -166,7 +166,7 @@ There should never be such a situation where this fcn is called.
 
 
 /************************************************************************/
-/* Writes and reads a byte from the SPI bus.							*/
+/* Writes and reads a byte from the SPI bus.                            */
 /* Private fcn only for internal use within this driver.				*/
 /* Never call it outside of this driver (compilation unit) unless you	*/
 /* really know what you do.												*/
