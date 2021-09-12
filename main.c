@@ -30,13 +30,13 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-/************************************************************************
- * nRF24L01_t13.c
- * Example applications to send/receive 2 bytes messages via nRF24L01 driver. 
- * The driver is configured for shared CS and CSN pins (feature 1) and 
- * shared MISO and MOSI pins (feature 3) - see nRF24L01.c for explanation.
- * For detailed pin configuration see definitions in "projdefs.h".
-************************************************************************/
+//------------------------------------------------------------------------
+// nRF24L01_t13.c
+// Example applications to send/receive 2 bytes messages via nRF24L01 driver.
+// The driver is configured for shared CS and CSN pins (feature 1) and 
+// shared MISO and MOSI pins (feature 3) - see nRF24L01.c for explanation.
+// For detailed pin configuration see definitions in "projdefs.h".
+//------------------------------------------------------------------------
 
 #include <avr/io.h>
 #include <util/delay.h>
@@ -49,8 +49,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define DELAY	3	// (== 250us * (n+1))
 #define RETRY	10	// 12
 
-#define MAX_BUFF_SIZE	 2
-
 const uint8_t PIPE0_ADDRESS[] = "0link";	// pipe 0 address
 
 #define LED_SET()	asm("sbi %0, %1" :: "I" (_SFR_IO_ADDR(PORTB)), "I" (LED_PIN) )
@@ -58,14 +56,11 @@ const uint8_t PIPE0_ADDRESS[] = "0link";	// pipe 0 address
 
 
 void testSend(void);
+void testRecv(void);
 
-#if	!defined(NRF24L01_DO_NOT_USE_MISO)
-	void testRecv(void);
-#endif
-
-/************************************************************************/
-/* Common initialization and config for send and receive applications   */
-/************************************************************************/
+//------------------------------------------------------------------------
+// Common initialization and config for send and receive applications
+//------------------------------------------------------------------------
 int main(void) {
 	LED_CLR();
 	NRF24L01_DDR |= _BV(LED_PIN);	// set LED pin dir to output
@@ -84,27 +79,34 @@ int main(void) {
 
 	nrf24_cmd(FLUSH_TX); // clean TX FIFOs thoroughly
 	nrf24_cmd(FLUSH_RX); // clean RX FIFOs thoroughly
-	//LED_SET();
 	
-	// comment/uncomment following functions based on how MCU should act (either sender or receiver)
-	//testSend();	
+	
+#ifdef TRANSMITTER	
+	#ifdef RECEIVER
+		#error Both macros TRANSMITTER and RECEIVER defined
+	#endif
+	testSend();	
+#elif defined(RECEIVER)
 	testRecv();
+#else
+	#error Neither TRANSMITTER nor RECEIVER macros defined.
+#endif
 }
 
-/************************************************************************/
-/* Periodically (3 seconds) send a message of 2 bytes.                  */
-/* The first byte is incremented, the second one is decremented.        */
-/* Each transmission is indicated by a LED blink.                       */
-/************************************************************************/
+
+//------------------------------------------------------------------------
+// Periodically (2 seconds) sends 32-bit sequence number.
+// After each transmission the number is incremented and
+// the LED shortly (800ms) blinks.
+//------------------------------------------------------------------------
+#ifdef TRANSMITTER
 void testSend() {
-	uint8_t msg[MAX_BUFF_SIZE] = {0, 0};
+	uint32_t seqNumTx = 0;
 	
 	nrf24_writeReg(W_REGISTER | SETUP_RETR, (DELAY & 0xf) << ARD_SHIFT | (RETRY & 0xf) << ARC_SHIFT); // set waiting and retransmit 
 		
 	while(1) {
 		LED_SET();
-		++msg[0];
-		--msg[1];
 		
 		// TX mode, enable CRC with 2 bytes, mask all IRQs, power on nRF radio (POWER DOWN ==> STANDBY-1)
 		nrf24_writeReg(W_REGISTER | NRF_CONFIG,
@@ -113,30 +115,37 @@ void testSend() {
 		_delay_ms(5); // there should be 5ms delay to bring nRF from the POWER DOWN to the POWER UP state (the worst case)
 
 		nrf24_cmd(FLUSH_TX); // clean TX FIFOs thoroughly - in case there is a frame with exceeded retransmission (ARC)
-		nrf24_writeReg(W_REGISTER | NRF_STATUS, NRF24_STATUS_CLEAR_ALL); // clear all status indications
-		
-		nrf24_writeRegs(W_TX_PAYLOAD, (uint8_t*)msg, sizeof(msg)); // write message to the TX FIFO
-		
+		nrf24_writeReg(W_REGISTER | NRF_STATUS, NRF24_STATUS_CLEAR_ALL); // clear all status indications		
+		nrf24_writeRegs(W_TX_PAYLOAD, (uint8_t*)&seqNumTx, sizeof(seqNumTx)); // write message to the TX FIFO		
 		nrf24_pulseCE(); // trigger transmission (STANDBY-1 ==> TX MODE)
 
 		_delay_ms(800); // wait for (re-)transmission(s) is over (TX MODE ==> STANDBY-2)
+		LED_CLR();
 		
 		// power off nRF (STANDBY-2 ==> POWER DOWN)
 		nrf24_writeReg(W_REGISTER | NRF_CONFIG,
 			NRF24_CFG_PWR_DOWN | NRF24_CFG_TX_MODE | NRF24_CFG_CRC_2B | NRF24_CFG_CRC_EN | NRF24_CFG_IRQ_MASK_ALL);
 		
-		LED_CLR();
-		_delay_ms(3000);
+		
+		
+		++seqNumTx;
+		_delay_ms(2000);
 	};
 }
+#endif
 
-#if	!defined(NRF24L01_DO_NOT_USE_MISO)
-/************************************************************************/
-/* Periodically (0.5 seconds) checks for reception of a message.        */
-/* It sets LED pin to the state of the LSB of the first byte.           */
-/************************************************************************/
+#ifdef RECEIVER
+//------------------------------------------------------------------------
+// Periodically (0.1 seconds) checks for reception of a message.
+// It blinks LED if received sequence number is expected (incremented).
+//------------------------------------------------------------------------
 void testRecv() {
-	uint8_t msg[NRF24_MAX_SIZE]; // in reality a smaller size is sufficient 
+	union {
+		uint8_t u8[NRF24_MAX_SIZE];
+		uint32_t seqNum;
+	} msg;
+
+	uint32_t seqNumRx = 0;
 
 	nrf24_writeReg(W_REGISTER | EN_AA,      NRF24_PIPE_0);  // en autoack
 	nrf24_writeReg(W_REGISTER | NRF_STATUS, NRF24_STATUS_CLEAR_ALL);  // clear status
@@ -146,29 +155,33 @@ void testRecv() {
 	NRF24_CFG_PWR_UP | NRF24_CFG_RX_MODE | NRF24_CFG_CRC_2B | NRF24_CFG_CRC_EN | NRF24_CFG_IRQ_MASK_ALL);
 	
 	_delay_ms(5); // there should be 5ms delay to bring nRF from the POWER DOWN to the POWER UP state (the worst case)
-		
-	
+			
 	while(1) {
 		uint8_t status = nrf24_readReg(R_REGISTER | NRF_STATUS); // get status
 
 		// something received?
 		if( status & NRF24_STATUS_RX_DR ) {
-			
 			// read everything what has been received from RX FIFO
 			// (make sure you read everything from RX FIFO otherwise RX FIFO will overflow eventually)
 			// (if you are lazy, you can always do FLUSH_RX after each read but you loose unprocessed frames, RX has 3 FIFOs)
-			nrf24_readRegs(R_RX_PAYLOAD, msg, nrf24_readReg(R_RX_PL_WID)); 			
-			
+			uint8_t msgSize = nrf24_readReg(R_RX_PL_WID);
+			nrf24_readRegs(R_RX_PAYLOAD, msg.u8, msgSize);
 			nrf24_writeReg(W_REGISTER | NRF_STATUS, NRF24_STATUS_CLEAR_ALL); // clear received flag
+
+			if(msgSize == sizeof(msg.seqNum)) {				
+				if(seqNumRx == msg.seqNum) {
+					LED_SET();
+					_delay_ms(1000);
+
+				} else {
+					seqNumRx = msg.seqNum;
+				}
+				++seqNumRx;
+			}
 			
-			// toggle LED 
-			if(msg[0] & 0x01)
-				LED_SET();
-			else
-				LED_CLR();
 		}
-		
-		_delay_ms(500);		
+		LED_CLR();
+		_delay_ms(100);
 	};
 
 }

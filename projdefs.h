@@ -31,28 +31,40 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 
-/**************************************************************************************
- * projdefs.h - Project configuration file. 
- * Contains configuration of features and pins for particular driver(s) and devices.
- **************************************************************************************/ 
+//------------------------------------------------------------------------
+// projdefs.h - Project configuration file. 
+// Contains configuration of features and pins for particular driver(s) and devices.
+//------------------------------------------------------------------------
 
 #pragma once
 
 #include <avr/io.h> 
 
+// Comment/uncomment following functions based on how MCU should act (either sender or receiver)
+#define TRANSMITTER
+//#define RECEIVER
 
-/************************************************************************/
-/* Feature configuration for nRF24L01 driver                            */
-/************************************************************************/
-#define NRF24L01_SHARED_CE_CSN
+//------------------------------------------------------------------------
+// Feature configuration for nRF24L01 driver
+//------------------------------------------------------------------------
+#ifdef TRANSMITTER
+	
+	#ifdef RECEIVER
+		#error Both macros TRANSMITTER and RECEIVER defined
+	#endif
 
-#define	NRF24L01_SHARED_MISO
-//#define	NRF24L01_DO_NOT_USE_MISO
+	#define NRF24L01_SHARED_CE_CSN
+	#define	NRF24L01_DO_NOT_USE_MISO
 
+#elif defined(RECEIVER)	
+	#define	NRF24L01_SHARED_MISO
+#else	
+	#error Neither TRANSMITTER nor RECEIVER macros defined.
+#endif
 
-/************************************************************************/
-/* Pins configuration for nRF24L01 driver                               */
-/************************************************************************/
+//------------------------------------------------------------------------
+// Pins configuration for nRF24L01 driver
+//------------------------------------------------------------------------
 #define NRF24L01_PORT		PORTB
 #define NRF24L01_DDR		DDRB
 #define NRF24L01_INPORT		PINB
@@ -71,7 +83,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
 
-/************************************************************************/
-/* Pin for LED indicator                                                */
-/************************************************************************/
+//------------------------------------------------------------------------
+// Pin for LED indicator
+//------------------------------------------------------------------------
 #define LED_PIN		PB3
