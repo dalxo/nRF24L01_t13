@@ -165,20 +165,19 @@ it will mess with registers. There should never be such a situation where this f
 #define	NRF24L01_MOSI_READ()		(NRF24L01_INPORT & _BV(NRF24L01_MOSI))
 
 
-/************************************************************************/
-/* Writes and reads a byte from the SPI bus.                            */
-/* Private fcn only for internal use within this driver.                */
-/* Never call it outside of this driver (compilation unit) unless you   */
-/* really know what you do.                                             */
-/*                                                                      */
-/* data: byte to be sent out on the bus                                 */
-/* return: byte received from the nRF                                   */
-/* Note 1: Depending on the PIN configuration, this method has 3        */
-/*         different implementations.                                   */
-/* Note 2: r25 is internally used without saving                        */
-/************************************************************************/
-uint8_t shiftOutByte(uint8_t data) {
-	
+//------------------------------------------------------------------------
+// Writes and reads a byte from the SPI bus.
+// Private fcn only for internal use within this driver.
+// Never call it outside of this driver (compilation unit) unless you
+// really know what you do.
+//
+// data: byte to be sent out on the bus
+// return: byte received from the nRF
+// Note 1: Depending on the PIN configuration, this method has 3
+//         different implementations.
+// Note 2: r25 is internally used without saving
+//------------------------------------------------------------------------
+uint8_t shiftOutByte(uint8_t data) {	
 	// We never read from the module, only pure write
 	// The footprint of the entire fcn is 20 bytes == 10 instructions
 	#ifdef NRF24L01_DO_NOT_USE_MISO
@@ -277,9 +276,9 @@ uint8_t shiftOutByte(uint8_t data) {
 	#endif
 }
 
-/************************************************************************/
-/* Initializes SPI interface                                            */
-/************************************************************************/
+//------------------------------------------------------------------------
+// Initializes SPI interface
+//------------------------------------------------------------------------
 void nrf24_init(void) {
 	NRF24L01_MOSI_CLR();
 	NRF24L01_SCK_CLR();
@@ -299,10 +298,10 @@ void nrf24_init(void) {
 	_delay_ms(100);	
 }
 
-/************************************************************************/
-/* Send SPI command to the nRF                                          */
-/* cmd: SPI command to be issued                                        */
-/************************************************************************/
+//------------------------------------------------------------------------
+// Send SPI command to the nRF
+// cmd: SPI command to be issued
+//------------------------------------------------------------------------
 void nrf24_cmd(uint8_t cmd) {
 	NRF24L01_CSN_SET();		//
 	NRF24L01_CSN_CLR();
@@ -312,11 +311,11 @@ void nrf24_cmd(uint8_t cmd) {
 }
 
 #ifndef NRF24L01_DO_NOT_USE_MISO
-/************************************************************************/
-/* Read from a single register                                          */
-/* cmd: SPI command to be issued                                        */
-/* return: read data from a register                                    */
-/************************************************************************/
+//------------------------------------------------------------------------
+// Read from a single register
+// cmd: SPI command to be issued
+// return: read data from a register
+//------------------------------------------------------------------------
 uint8_t nrf24_readReg(uint8_t cmd) {
 	NRF24L01_CSN_SET();		//
 	NRF24L01_CSN_CLR();
@@ -330,11 +329,11 @@ uint8_t nrf24_readReg(uint8_t cmd) {
 }
 #endif
 
-/************************************************************************/
-/* Write into a single register                                         */
-/* cmd: SPI command to be issued                                        */
-/* value: data to be written into a register                            */
-/************************************************************************/
+//------------------------------------------------------------------------
+// Write into a single register
+// cmd: SPI command to be issued
+// value: data to be written into a register
+//------------------------------------------------------------------------
 void nrf24_writeReg(uint8_t cmd, uint8_t value) {
 	NRF24L01_CSN_SET();
 	NRF24L01_CSN_CLR();	
@@ -350,12 +349,12 @@ void nrf24_writeReg(uint8_t cmd, uint8_t value) {
 	NRF24L01_CSN_CLR();
 }
 
-/************************************************************************/
-/* Write into multiple registers form buffer                            */
-/* cmd: SPI command to be issued                                        */
-/* buff: pointer to the buffer                                          */
-/* size: how many bytes to be written                                   */
-/************************************************************************/
+//------------------------------------------------------------------------
+// Write into multiple registers form buffer
+// cmd: SPI command to be issued
+// buff: pointer to the buffer
+// size: how many bytes to be written
+//------------------------------------------------------------------------
 void nrf24_writeRegs(uint8_t cmd, const uint8_t *buff, uint8_t size) {
 	NRF24L01_CSN_SET();	//
 	NRF24L01_CSN_CLR();	
@@ -376,12 +375,12 @@ void nrf24_writeRegs(uint8_t cmd, const uint8_t *buff, uint8_t size) {
 }
 
 #ifndef NRF24L01_DO_NOT_USE_MISO
-/************************************************************************/
-/* Read multiple registers into buffer                                  */
-/* cmd: SPI command to be issued                                        */
-/* buff: pointer to the buffer                                          */
-/* size: how many bytes to be read into the buffer                      */
-/************************************************************************/
+//------------------------------------------------------------------------
+// Read multiple registers into buffer
+// cmd: SPI command to be issued
+// buff: pointer to the buffer
+// size: how many bytes to be read into the buffer
+//------------------------------------------------------------------------
 void nrf24_readRegs(uint8_t cmd, uint8_t *buff, uint8_t size) {
 	NRF24L01_CSN_SET();	//
 	NRF24L01_CSN_CLR();
@@ -402,9 +401,9 @@ void nrf24_readRegs(uint8_t cmd, uint8_t *buff, uint8_t size) {
 }
 #endif
 
-/************************************************************************/
-/* Pulse CE signal for more than 10us to trigger the transmission       */
-/************************************************************************/
+//------------------------------------------------------------------------
+// Pulse CE signal for more than 10us to trigger the transmission
+//------------------------------------------------------------------------
 void nrf24_pulseCE(void) {
 #ifdef NRF24L01_SHARED_CE_CSN
 	NRF24L01_CSN_SET();	
