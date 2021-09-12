@@ -42,7 +42,7 @@ and which "pin conservation" features out of four are used:
 Both interface signals are connected to a single pin:
 
                 |----- CSN nRF
-   MCU PINx ----*----- CE nRF  
+   MCU PINx ----x----- CE nRF  
 
 This is useful if the MCU is used for transmissions of data (sensors) to the central hub. Between transmissions the module 
 is in the power saving mode (CE == 0, i.e. radio is off)  to conserve energy. 
@@ -54,7 +54,7 @@ The feature is enabled by macro: #define NRF24L01_SHARED_CE_CSN
 We do not read anything from the nRF module. Entire communication on SPI bus is one-directional
 from the MCU to nRF. Signal MISO is not connected to the MCU, thus this saves 1 pin on MCU.
 
-                    x-- MISO nRF
+                    *-- MISO nRF
    MCU PINx ----------- MOSI nRF
 
 
@@ -68,8 +68,8 @@ or receiving data. Rather than consuming additional pin on MCU (beside MOSI), bo
 can be connected to a single MCU pin via a resistor. 
 
               4k7 <= R <= 10k
-                |--\/\/\-- MISO nRF
-   MCU PINx ----*--------- MOSI nRF
+                |--[ R ]-- MISO nRF
+   MCU PINx ----x--------- MOSI nRF
 
 The HW solution was proposed by Nerd Ralph:
 http://nerdralph.blogspot.com/2015/05/nrf24l01-control-with-2-mcu-pins-using.html
