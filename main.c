@@ -94,6 +94,7 @@ int main(void) {
 /************************************************************************/
 /* Periodically (3 seconds) send a message of 2 bytes.                  */
 /* The first byte is incremented, the second one is decremented.        */
+/* Each transmission is indicated by a LED blink.                       */
 /************************************************************************/
 void testSend() {
 	uint8_t msg[MAX_BUFF_SIZE] = {0, 0};
@@ -156,7 +157,7 @@ void testRecv() {
 			// read everything what has been received from RX FIFO
 			// (make sure you read everything from RX FIFO otherwise RX FIFO will overflow eventually)
 			// (if you are lazy, you can always do FLUSH_RX after each read but you loose unprocessed frames, RX has 3 FIFOs)
-			nrf24_readRegs(R_RX_PAYLOAD, msg, nrf24_readReg( R_RX_PL_WID )); 			
+			nrf24_readRegs(R_RX_PAYLOAD, msg, nrf24_readReg(R_RX_PL_WID)); 			
 			
 			nrf24_writeReg(W_REGISTER | NRF_STATUS, NRF24_STATUS_CLEAR_ALL); // clear received flag
 			
