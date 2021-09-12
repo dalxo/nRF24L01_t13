@@ -42,7 +42,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 // Comment/uncomment following functions based on how MCU should act (either sender or receiver)
 #define TRANSMITTER
-//#define RECEIVER
+#define RECEIVER
 
 //------------------------------------------------------------------------
 // Feature configuration for nRF24L01 driver
@@ -57,7 +57,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 	#define	NRF24L01_DO_NOT_USE_MISO
 
 #elif defined(RECEIVER)	
-	#define	NRF24L01_SHARED_MISO
+	#define	NRF24L01_3WIRE_SPI
 #else	
 	#error Neither TRANSMITTER nor RECEIVER macros defined.
 #endif

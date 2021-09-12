@@ -50,7 +50,7 @@ Applicable for battery powered applications.
 The feature is enabled by macro: #define NRF24L01_SHARED_CE_CSN
 
 --------------
-2) Only write into nRF is supported:
+2) Unidirectional 3-wire SPI (only write into nRF is supported, MISO disconnected):
 We do not read anything from the nRF module. Entire communication on SPI bus is one-directional
 from the MCU to nRF. Signal MISO is not connected to the MCU, thus this saves 1 pin on MCU.
 
@@ -62,26 +62,27 @@ This is useful for applications that only transmit data, e.g. sensors.
 The feature is enabled by macro: #define NRF24L01_DO_NOT_USE_MISO
 
 --------------
-3) Shared MISO and MOSI pins:
+3) Bidirectional 3-wire SPI (shared MISO and MOSI pins):
 For situations where MCU needs bi-directional access to the nRF radio module, e.g. reading registers
 or receiving data. Rather than consuming additional pin on MCU (beside MOSI), both MISO and MOSI 
 can be connected to a single MCU pin via a resistor. 
-
+        
+                |--------- MISO nRF
+   MCU PINx ----x--[ R ]-- MOSI nRF
               4k7 <= R <= 10k
-                |--[ R ]-- MISO nRF
-   MCU PINx ----x--------- MOSI nRF
 
-The HW solution was proposed by Nerd Ralph:
+Similar HW solution (resistor is on MISO pin) was tested by Nerd Ralph:
 http://nerdralph.blogspot.com/2015/05/nrf24l01-control-with-2-mcu-pins-using.html
 Solution from Ralph also deals with SCK and CSN signals (assuming CE is always ON) which we do not apply in our case. 
 
-The feature is enabled by macro: #define NRF24L01_SHARED_MISO
+The feature is enabled by macro: #define NRF24L01_3WIRE_SPI
 
 --------------
-4) Independent MISO and MOSI pins:
-In this case we have separate pins for MOSI and MISO signals. This does not conserve pins on MCU. 
-Nevertheless, the footprint of this solution is 10 bytes (5 instructions) smaller than shared pins. 
-This is useful in application where the code footprint is more critical than number of used pins.
+4) Standard 4-wire SPI (independent MISO and MOSI pins):
+In this case we have separate pins for MOSI and MISO signals, i.e. standard 4-wire SPI. 
+This does not conserve pins on MCU. Nevertheless, the footprint of this solution 
+is 10 bytes (5 instructions) smaller than shared pins. This is useful in application 
+where the code footprint is more critical than number of used pins.
 
    MCU PINx ----------- MISO nRF
    MCU PINy ----------- MOSI nRF
@@ -100,7 +101,7 @@ The features (2) -- (4) are MUTUALY EXCLUSIVE, i.e. only one of them can be enab
 List of macros for selecting features:
 #define	NRF24L01_SHARED_CE_CSN		// Enable feature (1), can be concurrently used with features (2), (3), and (4).
 #define	NRF24L01_DO_NOT_USE_MISO	// Enable feature (2), mutually exclusive with feature (3) and (4)
-#define	NRF24L01_SHARED_MISO		// Enable feature (3), mutually exclusive with feature (2) and (4)
+#define	NRF24L01_3WIRE_SPI		// Enable feature (3), mutually exclusive with feature (2) and (4)
 
 Feature (4) is enabled be default unless feature (2) or (3) is enabled. 
 
@@ -205,7 +206,7 @@ uint8_t shiftOutByte(uint8_t data) {
 
 	// We do both read and write but MISO and MOSI are shared (connected) via a single pin
 	// The footprint of the entire fcn is 34 bytes == 17 instructions
-	#elif defined(NRF24L01_SHARED_MISO)
+	#elif defined(NRF24L01_3WIRE_SPI)
 		uint8_t out;
 		asm volatile (
 		"ldi		r25, 8				\n\t"	// i = 8
@@ -242,7 +243,7 @@ uint8_t shiftOutByte(uint8_t data) {
 
 		return out;	
 	
-	// We do both read and write, both MISO and MOSI are connected via independent pins
+	// We do both read and write for regular 4-wire SPI with separate MISO and MOSI pins
 	// The footprint of the entire fcn is 24 bytes == 12 instructions
 	#else
 		uint8_t read;
