@@ -32,10 +32,10 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 //------------------------------------------------------------------------
 // nRF24L01_t13.c
-// Example applications to send/receive 2 bytes messages via nRF24L01 driver.
-// The driver is configured for shared CS and CSN pins (feature 1) and 
-// shared MISO and MOSI pins (feature 3) - see nRF24L01.c for explanation.
-// For detailed pin configuration see definitions in "projdefs.h".
+// Example applications to send/receive 32-bit sequence number via nRF24L01 driver.
+// In the transmitter mode role, the driver is configured for shared CS and CSN pins (feature 1).
+// The receiver role uses shared MISO and MOSI pins (feature 3) - see nRF24L01.c for explanation.
+// For pin and role configurations see definitions in "projdefs.h" file.
 //------------------------------------------------------------------------
 
 #include <avr/io.h>
