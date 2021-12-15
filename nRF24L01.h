@@ -178,3 +178,4 @@ void nrf24_readRegs(uint8_t cmd, uint8_t *buff, uint8_t size);
 void nrf24_writeReg(uint8_t reg, uint8_t value);
 void nrf24_writeRegs(uint8_t reg, const uint8_t *buff, uint8_t size);
 void nrf24_pulseCE(void);
+void nrf24_pulseCE_ms(uint16_t millis);
