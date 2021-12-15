@@ -41,6 +41,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // General
 //------------------------------------------------------------------------
 #define NRF24_MAX_SIZE	32
+#define FIFTEEN_MICROSECONDS	15
 
 //------------------------------------------------------------------------
 // SPI Commands

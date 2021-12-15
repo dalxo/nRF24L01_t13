@@ -406,15 +406,17 @@ void nrf24_readRegs(uint8_t cmd, uint8_t *buff, uint8_t size) {
 // Pulse CE signal for more than 10us to trigger the transmission
 //------------------------------------------------------------------------
 void nrf24_pulseCE(void) {
-#ifdef NRF24L01_SHARED_CE_CSN
-	NRF24L01_CSN_SET();	
-	_delay_ms(1);
-	NRF24L01_CSN_CLR();
-#else
-	NRF24L01_CE_SET();
-	_delay_ms(1);
-	NRF24L01_CE_CLR();
-#endif	
+	#ifdef NRF24L01_SHARED_CE_CSN
+		NRF24L01_CSN_SET();
+		_delay_us(FIFTEEN_MICROSECONDS);
+		NRF24L01_CSN_CLR();
+	#else
+		NRF24L01_CE_SET();
+		_delay_us(FIFTEEN_MICROSECONDS);
+		NRF24L01_CE_CLR();
+	#endif
+}
+
 //------------------------------------------------------------------------
 // Pulse CE signal for given number of milliseconds - intended for the RX.
 // Useful when using shared CE/CSN signal and also entering RX mode.
