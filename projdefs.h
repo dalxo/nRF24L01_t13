@@ -42,7 +42,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 // Comment/uncomment following functions based on how MCU should act (either sender or receiver)
 #define TRANSMITTER
-#define RECEIVER
+//#define RECEIVER
 
 //------------------------------------------------------------------------
 // Feature configuration for nRF24L01 driver
