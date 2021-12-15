@@ -50,19 +50,7 @@ Applicable for battery powered applications.
 The feature is enabled by macro: #define NRF24L01_SHARED_CE_CSN
 
 --------------
-2) Unidirectional 3-wire SPI (only write into nRF is supported, MISO disconnected):
-We do not read anything from the nRF module. Entire communication on SPI bus is one-directional
-from the MCU to nRF. Signal MISO is not connected to the MCU, thus this saves 1 pin on MCU.
-
-                    *-- MISO nRF
-   MCU PINx ----------- MOSI nRF
-
-
-This is useful for applications that only transmit data, e.g. sensors.
-The feature is enabled by macro: #define NRF24L01_DO_NOT_USE_MISO
-
---------------
-3) Bidirectional 3-wire SPI (shared MISO and MOSI pins):
+2) Bidirectional 3-wire SPI (shared MISO and MOSI pins):
 For situations where MCU needs bi-directional access to the nRF radio module, e.g. reading registers
 or receiving data. Rather than consuming additional pin on MCU (beside MOSI), both MISO and MOSI 
 can be connected to a single MCU pin via a resistor. 
@@ -76,6 +64,18 @@ http://nerdralph.blogspot.com/2015/05/nrf24l01-control-with-2-mcu-pins-using.htm
 Solution from Ralph also deals with SCK and CSN signals (assuming CE is always ON) which we do not apply in our case. 
 
 The feature is enabled by macro: #define NRF24L01_3WIRE_SPI
+
+--------------
+3) Unidirectional 3-wire SPI (only write into nRF is supported, MISO disconnected):
+We do not read anything from the nRF module. Entire communication on SPI bus is one-directional
+from the MCU to nRF. Signal MISO is not connected to the MCU, thus this saves 1 pin on MCU.
+
+*-- MISO nRF
+MCU PINx ----------- MOSI nRF
+
+
+This is useful for applications that only transmit data, e.g. sensors.
+The feature is enabled by macro: #define NRF24L01_DO_NOT_USE_MISO
 
 --------------
 4) Standard 4-wire SPI (independent MISO and MOSI pins):
@@ -101,9 +101,9 @@ The features (2) -- (4) are MUTUALY EXCLUSIVE, i.e. only one of them can be enab
 List of macros for selecting features:
 #define	NRF24L01_SHARED_CE_CSN		// Enable feature (1), can be concurrently used with features (2), (3), and (4).
 #define	NRF24L01_DO_NOT_USE_MISO	// Enable feature (2), mutually exclusive with feature (3) and (4)
-#define	NRF24L01_3WIRE_SPI		// Enable feature (3), mutually exclusive with feature (2) and (4)
+#define	NRF24L01_3WIRE_SPI			// Enable feature (3), mutually exclusive with feature (2) and (4)
 
-Feature (4) is enabled be default unless feature (2) or (3) is enabled. 
+Feature (4) is enabled be default unless feature (2) or (3) is enabled (defined). 
 
 
 ================================
@@ -300,7 +300,13 @@ void nrf24_init(void) {
 }
 
 //------------------------------------------------------------------------
-// Send SPI command to the nRF
+// Send SPI command to the nRF. 
+// The function sends only 1-byte command to the module. Typical 1-byte commands are:
+// FLUSH_RX, FLUSH_TX, REUSE_TX_PL. 
+// This function is not applicable for multi-byte commands, for instance:
+// read/Write to config and status, registers, accessing buffers. 
+// For multi-byte commands use other functions (e.g. nrf24_readReg). 
+//
 // cmd: SPI command to be issued
 //------------------------------------------------------------------------
 void nrf24_cmd(uint8_t cmd) {

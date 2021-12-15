@@ -42,6 +42,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //------------------------------------------------------------------------
 #define NRF24_MAX_SIZE	32
 #define FIFTEEN_MICROSECONDS	15
+#define DELAY_POWER_UP_MILLIS	5
 
 //------------------------------------------------------------------------
 // SPI Commands
@@ -172,11 +173,11 @@ void nrf24_init(void);
 void nrf24_cmd(uint8_t cmd);
 
 #ifndef NRF24L01_DO_NOT_USE_MISO
-uint8_t nrf24_readReg(uint8_t reg);
+uint8_t nrf24_readReg(uint8_t cmd);
 void nrf24_readRegs(uint8_t cmd, uint8_t *buff, uint8_t size);
 #endif
 
-void nrf24_writeReg(uint8_t reg, uint8_t value);
-void nrf24_writeRegs(uint8_t reg, const uint8_t *buff, uint8_t size);
+void nrf24_writeReg(uint8_t cmd, uint8_t value);
+void nrf24_writeRegs(uint8_t cmd, const uint8_t *buff, uint8_t size);
 void nrf24_pulseCE(void);
 void nrf24_pulseCE_ms(uint16_t millis);
