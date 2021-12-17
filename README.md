@@ -82,9 +82,68 @@ Define the following macros (where applicable - see configurations above) for a 
 ````
 
 ## API
+API is failry modest and has 8 functions or 6 if uni-directional SPI is configured. They are logically split into 4 categories:
+
+### Non-SPI
+Here are two functions that do not perform SPI communication but are responsible for proper MCU setup and manipulation with CE signal. 
+
+#### Library initialization
+```C
+void nrf24_init(void);
+```
+Must be called before any other function from the library. The purpose is to configure and initialize pins on the controller.
+
+#### Pulse on CE signal
+
+```C
+void nrf24_pulseCE(void);
+```
+It will make a short 15us pulse on CE signal. This is primarily used to enable TX mode in the nRF24 module and immediatelly trigger transmission of TX buffers.
+
+For RX mode shall be used the following one:
+```C
+void nrf24_pulseCE_ms(uint16_t millis);
+```
+This method will hold CE signal high for a given period of time after which it will set CE to low. Thus, it is not an ideal in case we have saparate CE and CSN line. In such case user can control CE line independently a use this library only to acess nRF24's internal registers. Generally speaking, if application requires to spend more time in RX mode than in TX, it is better to tight CE to Vcc. See the explanation in the [article](https://www.hackster.io/orfanus/nrf24l01-for-ultra-low-power-sensor-with-attiny13a-3-pins-a51b2c) (or look at the state machine and guess why).
+
+
+### Zero byte command
+*TBD*
+
+```C
+void nrf24_cmd(uint8_t cmd);
+```
+
+
+### One byte command
+*TBD*
+
+```C
+void nrf24_writeReg(uint8_t cmd, uint8_t value);
+
+#ifndef NRF24L01_DO_NOT_USE_MISO
+	uint8_t nrf24_readReg(uint8_t cmd);
+#endif
+
+```
+
+
+### Multi-byte command
+*TBD*
+
+```C
+void nrf24_writeRegs(uint8_t cmd, const uint8_t *buff, uint8_t size);
+
+#ifndef NRF24L01_DO_NOT_USE_MISO
+	void nrf24_readRegs(uint8_t cmd, uint8_t *buff, uint8_t size);
+#endif
+
+```
+
+
 
 ## Demo
-Code for working example is in [main.c](main.c) and configuration in [projdefs.h](projdefs.h). The demo consists of both transmitter and receiver. Compilation for either of the application is selected by `#define TRANSMITTER` or `#define RECEIVER` macros. Transmitter periodically sends data (indicated with flashing LED) and receiver flashes LED when receives expected data (increment of the previous sequence number). Demo is fairly simple but shows all what is needed to send/receive any sort of data. 
+Code for working example is in [main.c](main.c) and configuration in [projdefs.h](projdefs.h). The demo shows whole API lifecycle and consists of both transmitter and receiver. Compilation for either of the application is selected by `#define TRANSMITTER` or `#define RECEIVER` macros. Transmitter periodically sends data (indicated with flashing LED) and receiver flashes LED when receives expected data (increment of the previous sequence number). Demo is fairly simple but shows all what is needed to send/receive any sort of data. 
 
 
 
