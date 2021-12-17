@@ -1,4 +1,4 @@
-# nRF24L01+ for ATtiny13A ultra low-power wireless sensor
+# nRF24L01+ for ATtiny13A ultra-low-power wireless sensor
 ![Cover image](media/cover_image.jfif)
 
 OSI Layer 2 driver for nRF24L01+ on [ATtiny13A](https://www.microchip.com/en-us/product/ATtiny13) (1KiB flash + 64B SRAM) for ultra low-power wireless applications. It was devised to optimize:
@@ -19,9 +19,6 @@ Both interface signals are connected to a single pin:
 
 This is useful if the MCU is used for transmissions of data (sensors) to the central hub. Between transmissions the module 
 is in the power saving mode (`CE == 0`, i.e. radio is off)  to conserve energy. Applicable for battery powered applications. 
-The configuration is enabled with macro:
- 
-`#define NRF24L01_SHARED_CE_CSN`
 
 If an application is intended to spend more time in the RX mode than TX, it might be more efficient to not merge CE and CSN. Instead, pulling CE to Vcc (high) would allow ATtiny13A to pool for new messages without a need to switch off the radio.
 
@@ -35,9 +32,6 @@ In our case values from 4.7k up to 10k worked well. Merged MISO/MOSI saves one p
 
 ![3-wire SPI with shared CE/CSN](media/MIMO_shared_CE_CSN.png)
 
-The configuration is enabled with macro:
-
-`#define NRF24L01_3WIRE_SPI`
 
 ### (3) Uni-directional SPI
 There are cases when we do not read anything from the nRF24 module. The device is used only as a data source and for transmission. Thus, we can reduce entire communication on SPI bus only to writting into the module. Signal MISO is not used:
@@ -49,15 +43,10 @@ We can combine this configuration with the first one (shared CE/CSN) to further 
 ![3-wire SPI with shared CE/CSN](media/Only_MOSI_Shared_CE_CSN.png)
 
 
-The configuration is enabled with macro: 
-
-`#define NRF24L01_DO_NOT_USE_MISO`
-
-
 ### (4) Full (4-wire) SPI
 In this case we have separate pins for MOSI and MISO signals, i.e. standard 4-wire SPI. This does not conserve pins on MCU. Nevertheless, the footprint of this solution is 10 bytes (5 instructions) smaller than shared pins. This is useful in application where the code footprint is more critical than number of used pins.
 
-This is the default configuration - unless it is overridden by macros from configuration (2) or (3). It is possible to combine it with the first configuration (shared CE/CSN).
+This is the default configuration and it is possible to combine it with the first configuration (shared CE/CSN).
 
 
 ## SW Configuration
@@ -92,4 +81,28 @@ Define the following macros (where applicable - see configurations above) for a 
 #define NRF24L01_MISO	PB4    // Optional. Define only if 4-wire SPI is used.
 ````
 
-### API
+## API
+
+## Demo
+Code for working example is in [main.c](main.c) and configuration in [projdefs.h](projdefs.h). The demo consists of both transmitter and receiver. Compilation for either of the application is selected by `#define TRANSMITTER` or `#define RECEIVER` macros. Transmitter periodically sends data (indicated with flashing LED) and receiver flashes LED when receives expected data (increment of the previous sequence number). Demo is fairly simple but shows all what is needed to send/receive any sort of data. 
+
+
+
+### Transmitter
+The transmitter combines the first (shared CE/CSN) and the third (uni-directional) HW configuration. This occupies 3 pins on MCU, leaving 2 (+1 if no RST) for other devices/sensors/applications:
+
+![Transmitter uses shared CE/CSN with uni-directional SPI](media/TX_NO_MISO.png)
+
+The application every 2 seconds increments and sends 32-bit unsigned integer to pipe 0 on channel 120. LED turns on for 800ms to indicate the start of the period. The source code shows the entire procedure from powering on the radio, configuring the module, moving data into buffer, transmission, and power of the radio.
+
+The overall **footprint of the transmitter application** including the devised library for nRF24 is **378 bytes (out of 1KiB available)** in flash and 6 bytes SRAM (out of 64).
+
+
+### Receiver
+The receiver application does not utilize shared CE/CSN because the module works only in RX mode and does not transmit data (except for acknowledging packets). To optimize the pin-count we apply 3-wire SPI which occupies on 3 pins:
+
+![Receiver uses 3-wire SPI with CE permanently enabled](media/RX_CE-high.png)
+
+The application software pools every 100ms status register for new packets. If a packet has arrived, it is read into MCU, and status is cleared. If the received sequence number is identical to the increment of the previous one, the green LED is turned on for 1 second.
+
+The overall **footprint of the receiver application** including the devised library for nRF24 is **434 bytes (out of 1KiB available)** in flash and 6 bytes SRAM (out of 64).
