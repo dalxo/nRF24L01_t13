@@ -43,6 +43,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // See nRF24L01.c for detailed explanations.
 // Pin and role configurations are defined in "projdefs.h" file.
+//
+// Note: To improve the power consumption of the ATtiny we should use 
+//		sleep mode on MCU instead of regular busy _delay_ms fcn. 
 //------------------------------------------------------------------------
 
 #include <avr/io.h>
