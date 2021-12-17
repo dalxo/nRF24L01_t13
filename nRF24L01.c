@@ -70,7 +70,7 @@ The feature is enabled by macro: #define NRF24L01_3WIRE_SPI
 We do not read anything from the nRF module. Entire communication on SPI bus is one-directional
 from the MCU to nRF. Signal MISO is not connected to the MCU, thus this saves 1 pin on MCU.
 
-*-- MISO nRF
+                 *-- MISO nRF
 MCU PINx ----------- MOSI nRF
 
 
