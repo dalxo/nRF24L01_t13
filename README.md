@@ -82,7 +82,7 @@ Define the following macros (where applicable - see configurations above) for a 
 ````
 
 ## API
-API is failry modest and has 8 functions or 6 if uni-directional SPI is configured. They are logically split into 4 categories:
+API is failry modest and has 8 methods if bi-directional SPI access is used. If uni-directional (read-only) is configured then only 6 methods are available. API methods are logically split into 4 categories:
 
 ### Non-SPI
 Here are two functions that do not perform SPI communication but are responsible for proper MCU setup and manipulation with CE signal. 
@@ -107,16 +107,19 @@ void nrf24_pulseCE_ms(uint16_t millis);
 This method will hold CE signal high for a given period of time after which it will set CE to low. Thus, it is not an ideal in case we have saparate CE and CSN line. In such case user can control CE line independently a use this library only to acess nRF24's internal registers. Generally speaking, if application requires to spend more time in RX mode than in TX, it is better to tight CE to Vcc. See the explanation in the [article](https://www.hackster.io/orfanus/nrf24l01-for-ultra-low-power-sensor-with-attiny13a-3-pins-a51b2c) (or look at the state machine and guess why).
 
 
-### Zero byte command
-*TBD*
+### Zero Data Command
 
 ```C
 void nrf24_cmd(uint8_t cmd);
 ```
+This method shall be used only we send to the module a single command byte (as definned in the [Table 16](https://www.sparkfun.com/datasheets/Components/SMD/nRF24L01Pluss_Preliminary_Product_Specification_v1_0.pdf) of the documentation), for instance: `FLUSH_TX` (flush all TX buffers), `FLUSH_RX` (flush all RX buffers), `REUSE_TX_P` (reuse last transmitted payload). 
+
+All SPI command code macros are defined in the [nRF24L01.h](nRF24L01.h).
 
 
-### One byte command
-*TBD*
+### One Byte Data Command
+
+For SPI commands to access a single register, the following methods shall be used:
 
 ```C
 void nrf24_writeReg(uint8_t cmd, uint8_t value);
@@ -127,9 +130,17 @@ void nrf24_writeReg(uint8_t cmd, uint8_t value);
 
 ```
 
+Argument *cmd* is a command word as definned in the [Table 16](https://www.sparkfun.com/datasheets/Components/SMD/nRF24L01Pluss_Preliminary_Product_Specification_v1_0.pdf) of the documentation. Its format is: *0x00wA_AAAA* where *w==1* means write and *A_AAAA* is the address of a register ([Section 9 - Register Map](https://www.sparkfun.com/datasheets/Components/SMD/nRF24L01Pluss_Preliminary_Product_Specification_v1_0.pdf).
 
-### Multi-byte command
-*TBD*
+The [header file](nRF24L01.h) contains pre-defined macros including register addresses used to compound a command. For example, the command to write into the *CONFIG* register (adress 0x00) is: `W_REGISTER | NRF_CONFIG`. The command to read *STATUS* register (address 0x07) will be: `R_REGISTER | NRF_STATUS`.
+
+Besides reading a particular register with *R_REGISTER*, there is a special command *R_RX_PL_WID* to read the size of the received message. 
+
+See the demo code in the [main.c](main.c) that covers all cases. 
+
+
+### Multi-byte Data Command
+If number of bytes to be written to or read from the module is greater than one, the following methods shall be used:
 
 ```C
 void nrf24_writeRegs(uint8_t cmd, const uint8_t *buff, uint8_t size);
@@ -140,6 +151,7 @@ void nrf24_writeRegs(uint8_t cmd, const uint8_t *buff, uint8_t size);
 
 ```
 
+The argumen *cmd* has identical meaning as with previous methdos. Pointer to a buffer and its size are self-explanatory. 
 
 
 ## Demo
