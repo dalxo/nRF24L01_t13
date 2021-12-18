@@ -1,7 +1,7 @@
 # nRF24L01+ for ATtiny13A ultra-low-power wireless sensor
 ![Cover image](media/cover_image.jfif)
 
-OSI Layer 2 driver for nRF24L01+ on [ATtiny13A](https://www.microchip.com/en-us/product/ATtiny13) (1KiB flash + 64B SRAM) for ultra low-power wireless applications. It was devised to optimize:
+OSI Layer 2 driver for [nRF24L01+](https://www.nordicsemi.com/products/nrf24-series) on [ATtiny13A](https://www.microchip.com/en-us/product/ATtiny13) (1KiB flash + 64B SRAM) for ultra low-power wireless applications. It was devised to optimize:
 - **Pin-count:** It supports three generic pin-optimization HW configurations that require none or a single resistor. The nRF24 module occupies on MCU only 3 pins instead of 6. This leaves theother 2 pins (+1 if RST used as IO) for attaching sensor(s) or a fieldbuss.
 
 - **Power-consumption:** It was dedicatedly made for ultra-low-power applications. The energy-saving is achieved by the optimized library with a very small number of instructions. This reduces overall execution time. The pin-count is minimized in a way that offers better energy management of the nRF24 module than other similar approaches (shared CE/CSN vs. CE permanently active).
@@ -10,6 +10,10 @@ OSI Layer 2 driver for nRF24L01+ on [ATtiny13A](https://www.microchip.com/en-us/
 
 [**More detailed describtion of the library on Hackster.io**](https://www.hackster.io/orfanus/nrf24l01-for-ultra-low-power-sensor-with-attiny13a-3-pins-a51b2c)
 
+[**User-friendly introduction to the nRF24L01+ module**](https://lastminuteengineers.com/nrf24l01-arduino-wireless-communication/)
+
+[**nRF24L01+ technical documentation**](https://www.sparkfun.com/datasheets/Components/SMD/nRF24L01Pluss_Preliminary_Product_Specification_v1_0.pdf)
+
 ## HW Configurations
 
 ### (1) Shared CE/CSN pins
@@ -17,8 +21,10 @@ Both interface signals are connected to a single pin:
 
 ![Shared CE and CSN pins](media/Shared_CE_CSN-2.png)
 
-This is useful if the MCU is used for transmissions of data (sensors) to the central hub. Between transmissions the module 
-is in the power saving mode (`CE == 0`, i.e. radio is off)  to conserve energy. Applicable for battery powered applications. 
+The working mechanism and logic behind it is in detailed explained [here](https://www.hackster.io/orfanus/nrf24l01-for-ultra-low-power-sensor-with-attiny13a-3-pins-a51b2c).
+
+This configuration is useful in applications with dominating transmissions of data (sensors). Between transmissions the module 
+is automatically in the power saving mode (`CE == 0`, i.e. radio is off and module is in the *STAND_BY-1* or *POWER_DONW* mode) to conserve some (battery) energy.
 
 If an application is intended to spend more time in the RX mode than TX, it might be more efficient to not merge CE and CSN. Instead, pulling CE to Vcc (high) would allow ATtiny13A to pool for new messages without a need to switch off the radio.
 
@@ -82,7 +88,7 @@ Define the following macros (where applicable - see configurations above) for a 
 ````
 
 ## API
-API is failry modest and has 8 methods if bi-directional SPI access is used. If uni-directional (read-only) is configured then only 6 methods are available. API methods are logically split into 4 categories:
+API is failry modest and has 8 methods if bi-directional SPI access is used. If uni-directional (read-only) is configured then only 6 methods are available. API methods are logically split into 4 groups:
 
 ### Non-SPI
 Here are two functions that do not perform SPI communication but are responsible for proper MCU setup and manipulation with CE signal. 
@@ -130,11 +136,11 @@ void nrf24_writeReg(uint8_t cmd, uint8_t value);
 
 ```
 
-Argument *cmd* is a command word as definned in the [Table 16](https://www.sparkfun.com/datasheets/Components/SMD/nRF24L01Pluss_Preliminary_Product_Specification_v1_0.pdf) of the documentation. Its format is: *0x00wA_AAAA* where *w==1* means write and *A_AAAA* is the address of a register ([Section 9 - Register Map](https://www.sparkfun.com/datasheets/Components/SMD/nRF24L01Pluss_Preliminary_Product_Specification_v1_0.pdf).
+Argument *cmd* is a command word as definned in the [Table 16](https://www.sparkfun.com/datasheets/Components/SMD/nRF24L01Pluss_Preliminary_Product_Specification_v1_0.pdf) of the documentation. Its format is: *0x00wA_AAAA* where *w==1* means write and *A_AAAA* is the address of a register ([Section 9 - Register Map](https://www.sparkfun.com/datasheets/Components/SMD/nRF24L01Pluss_Preliminary_Product_Specification_v1_0.pdf)).
 
-The [header file](nRF24L01.h) contains pre-defined macros including register addresses used to compound a command. For example, the command to write into the *CONFIG* register (adress 0x00) is: `W_REGISTER | NRF_CONFIG`. The command to read *STATUS* register (address 0x07) will be: `R_REGISTER | NRF_STATUS`.
+The [header file](nRF24L01.h) contains pre-defined macros including register addresses used to compound a command. For example, the command to write into the `CONFIG` register (adress 0x00) is: `W_REGISTER | NRF_CONFIG`. The command to read `STATUS` register (address 0x07) will be: `R_REGISTER | NRF_STATUS`.
 
-Besides reading a particular register with *R_REGISTER*, there is a special command *R_RX_PL_WID* to read the size of the received message. 
+Besides reading a particular register with `R_REGISTER`, there is a special command `R_RX_PL_WID` to read the size of the received message. 
 
 See the demo code in the [main.c](main.c) that covers all cases. 
 
