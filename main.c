@@ -175,8 +175,8 @@ void testRecv() {
 			// read everything what has been received from RX FIFO
 			// (make sure you read everything from RX FIFO otherwise RX FIFO will overflow eventually)
 			// (if you are lazy, you can always do FLUSH_RX after each read but you loose unprocessed frames, RX has 3 FIFOs)
-			uint8_t msgSize = nrf24_readReg(R_RX_PL_WID);
-			nrf24_readRegs(R_RX_PAYLOAD, msg.u8, msgSize);
+			uint8_t msgSize = nrf24_readReg(R_RX_PL_WID); // read payload size
+			nrf24_readRegs(R_RX_PAYLOAD, msg.u8, msgSize);	// read payload into a buffer
 			nrf24_writeReg(W_REGISTER | NRF_STATUS, NRF24_STATUS_CLEAR_ALL); // clear received flag
 
 			if(msgSize == sizeof(msg.seqNum)) {				
