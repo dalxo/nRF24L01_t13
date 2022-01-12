@@ -169,6 +169,10 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // API
 //------------------------------------------------------------------------
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 void nrf24_init(void);
 void nrf24_cmd(uint8_t cmd);
 
@@ -181,3 +185,7 @@ void nrf24_writeReg(uint8_t cmd, uint8_t value);
 void nrf24_writeRegs(uint8_t cmd, const uint8_t *buff, uint8_t size);
 void nrf24_pulseCE(void);
 void nrf24_pulseCE_ms(uint16_t millis);
+
+#ifdef __cplusplus
+}
+#endif

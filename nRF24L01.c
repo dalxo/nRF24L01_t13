@@ -178,7 +178,7 @@ it will mess with registers. There should never be such a situation where this f
 //         different implementations.
 // Note 2: r25 is internally used without saving
 //------------------------------------------------------------------------
-uint8_t shiftOutByte(uint8_t data) {	
+extern uint8_t shiftOutByte(uint8_t data) {	
 	// We never read from the module, only pure write
 	// The footprint of the entire fcn is 20 bytes == 10 instructions
 	#ifdef NRF24L01_DO_NOT_USE_MISO
