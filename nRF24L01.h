@@ -163,7 +163,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define NRF24_PIPE_2		0x04
 #define NRF24_PIPE_3		0x08
 #define NRF24_PIPE_4		0x10
-#define NRF24_PIPE_6		0x20
+#define NRF24_PIPE_5		0x20
+#define NRF24_PIPE_ALL		0x3F
 
 //------------------------------------------------------------------------
 // API
