@@ -59,6 +59,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define DELAY	3	// (== 250us * (n+1))
 #define RETRY	10	// 12
 
+#define FIVE_BYTES	5
 const uint8_t PIPE0_ADDRESS[] = "0link";	// pipe 0 address
 
 #define LED_SET()	asm("sbi %0, %1" :: "I" (_SFR_IO_ADDR(PORTB)), "I" (LED_PIN) )
@@ -84,8 +85,8 @@ int main() {
 	nrf24_writeReg(W_REGISTER | DYNPD,     NRF24_PIPE_0);   // enable dynamic payload in pipe 0	
 	nrf24_writeReg(W_REGISTER | FEATURE,   NRF24_FEATURE_EN_DPL); // enable dynamic payload length
 
-	nrf24_writeRegs(W_REGISTER | TX_ADDR,  PIPE0_ADDRESS, 5);	// target pipe 0 address
-	nrf24_writeRegs(W_REGISTER | RX_ADDR_P0, PIPE0_ADDRESS, 5);	// RX address on pipe 0
+	nrf24_writeRegs(W_REGISTER | TX_ADDR,  PIPE0_ADDRESS, FIVE_BYTES);	// target pipe 0 address
+	nrf24_writeRegs(W_REGISTER | RX_ADDR_P0, PIPE0_ADDRESS, FIVE_BYTES);	// RX address on pipe 0
 
 	nrf24_cmd(FLUSH_TX); // clean TX FIFOs thoroughly
 	nrf24_cmd(FLUSH_RX); // clean RX FIFOs thoroughly
