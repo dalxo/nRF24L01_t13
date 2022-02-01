@@ -304,117 +304,8 @@ void nrf24_init(void) {
 	NRF24L01_DDR &= ~_BV(NRF24L01_MISO);
 #endif
 
-	_delay_ms(100);	
 }
 
-//------------------------------------------------------------------------
-// Send SPI command to the nRF. 
-// The function sends only 1-byte command to the module. Typical 1-byte commands are:
-// FLUSH_RX, FLUSH_TX, REUSE_TX_PL. 
-// This function is not applicable for multi-byte commands, for instance:
-// read/Write to config and status, registers, accessing buffers. 
-// For multi-byte commands use other functions (e.g. nrf24_readReg). 
-//
-// cmd: SPI command to be issued
-//------------------------------------------------------------------------
-void nrf24_cmd(uint8_t cmd) {
-	NRF24L01_CSN_SET();		//
-	NRF24L01_CSN_CLR();
-	shiftOutByte(cmd);
-	NRF24L01_CSN_SET();
-	NRF24L01_CSN_CLR();		
-}
-
-#ifndef NRF24L01_DO_NOT_USE_MISO
-//------------------------------------------------------------------------
-// Read from a single register
-// cmd: SPI command to be issued
-// return: read data from a register
-//------------------------------------------------------------------------
-uint8_t nrf24_readReg(uint8_t cmd) {
-	NRF24L01_CSN_SET();		//
-	NRF24L01_CSN_CLR();
-	
-	cmd = shiftOutByte(cmd);		// done on purpose to reduce ASM size
-	cmd = shiftOutByte(cmd);
-	
-	NRF24L01_CSN_SET();	
-	NRF24L01_CSN_CLR();
-	return cmd;
-}
-#endif
-
-//------------------------------------------------------------------------
-// Write into a single register
-// cmd: SPI command to be issued
-// value: data to be written into a register
-//------------------------------------------------------------------------
-void nrf24_writeReg(uint8_t cmd, uint8_t value) {
-	NRF24L01_CSN_SET();
-	NRF24L01_CSN_CLR();	
-	
-	asm volatile (
-		"rcall shiftOutByte			\n\t"
-		"mov	r24, r22			\n\t"
-		"rcall shiftOutByte			\n\t"
-		:: 
-	);
-	
-	NRF24L01_CSN_SET();
-	NRF24L01_CSN_CLR();
-}
-
-//------------------------------------------------------------------------
-// Write into multiple registers form buffer
-// cmd: SPI command to be issued
-// buff: pointer to the buffer
-// size: how many bytes to be written
-//------------------------------------------------------------------------
-void nrf24_writeRegs(uint8_t cmd, const uint8_t *buff, uint8_t size) {
-	NRF24L01_CSN_SET();	//
-	NRF24L01_CSN_CLR();	
-	
-	asm volatile(
-	"rcall	shiftOutByte		\n\t"	// in r24 is cmd, thus immediately call
-	"	WriteReg5_loop_%=:		\n\t"	
-	"ld		r24,	%a0+		\n\t"	// load to r24 byte from the buffer
-	"rcall	shiftOutByte		\n\t"	// call shift out (note, r24 and r25 are modified)
-	"dec	%1					\n\t"
-	"brne	WriteReg5_loop_%=	\n\t"
-	:
-	:"e"(buff), "r"(size)
-	);
-
-	NRF24L01_CSN_SET();	
-	NRF24L01_CSN_CLR();
-}
-
-#ifndef NRF24L01_DO_NOT_USE_MISO
-//------------------------------------------------------------------------
-// Read multiple registers into buffer
-// cmd: SPI command to be issued
-// buff: pointer to the buffer
-// size: how many bytes to be read into the buffer
-//------------------------------------------------------------------------
-void nrf24_readRegs(uint8_t cmd, uint8_t *buff, uint8_t size) {
-	NRF24L01_CSN_SET();	//
-	NRF24L01_CSN_CLR();
-	
-	asm volatile(
-	"rcall	shiftOutByte		\n\t"	// in r24 is cmd, thus immediately call
-	"	WriteReg6_loop_%=:		\n\t"
-	"rcall	shiftOutByte		\n\t"	// call shift out (note, r24 and r25 are modified)
-	"st		%a0+, r24			\n\t"	// load byte from r24 to the buffer
-	"dec	%1					\n\t"
-	"brne	WriteReg6_loop_%=	\n\t"
-	:
-	:"e"(buff), "r"(size)
-	);
-
-	NRF24L01_CSN_SET();
-	NRF24L01_CSN_CLR();
-}
-#endif
 
 //------------------------------------------------------------------------
 // Pulse CE signal for more than 10us to trigger the transmission
@@ -443,10 +334,12 @@ void nrf24_pulseCE_ms(uint16_t millis) {
 	#else
 		NRF24L01_CE_SET();
 	#endif
-	
-	while(millis--) {
-		_delay_ms(1);
-	};
+
+	// method _delay_ms does not take as an argument a variable, it must be a compile time constant
+	// thus we have to loop
+	do {
+		_delay_ms(1);	
+	} while (--millis);
 	
 	#ifdef NRF24L01_SHARED_CE_CSN
 		NRF24L01_CSN_CLR();
