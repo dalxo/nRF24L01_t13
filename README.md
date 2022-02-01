@@ -86,7 +86,7 @@ Define the following macros (where applicable - see configurations above) for a 
 ````
 
 ## API
-API is fairly modest and has 8 methods if bi-directional SPI access is used. If uni-directional (read-only) is configured then only 6 methods are available. These are low-granularity methods to optimize the overall footprint. User-friendly high-level methods with elevated programming comfort on such resource-deprived MCU are prohibitively expensive. API methods are logically split into 4 groups:
+API is fairly modest and has 8 methods if bi-directional SPI access is used. All API methods are declared in [nRF24L01.h](nRF24L01.h). The implementation is split to [nRF24L01.c](nRF24L01.c) and [nRF24L01_asm.S](nRF24L01_asm.S) files. If uni-directional (read-only) is configured then only 6 methods are available. These are low-granularity methods to optimize the overall footprint. User-friendly high-level methods with elevated programming comfort on such resource-deprived MCU are prohibitively expensive. API methods are logically split into 4 groups:
 
 ### Non-SPI
 Here are two functions that do not perform SPI communication but are responsible for proper MCU setup and manipulation with CE signal. 
@@ -170,7 +170,7 @@ The transmitter combines the first (shared CE/CSN) and the third (uni-directiona
 
 The application every 2 seconds increments and sends 32-bit unsigned integer to pipe 0 on channel 120. LED turns on for 800ms to indicate the start of the period. The source code shows the entire procedure from powering on the radio, configuring the module, moving data into buffer, transmission, and power of the radio.
 
-The overall **footprint of the transmitter application** (including the devised library for nRF24) is **378 bytes (out of 1KiB available)** and it occupies 6 bytes in SRAM (out of 64).
+The overall **footprint of the transmitter application** (including the devised library for nRF24) is **372 bytes (out of 1KiB available)** and it occupies 6 bytes in SRAM (out of 64).
 
 
 ### Receiver
@@ -180,4 +180,4 @@ The receiver application does not utilize shared CE/CSN because the module works
 
 The application software pools every 100ms status register for new packets. If a packet has arrived, it is read into MCU, and status is cleared. If the received sequence number is identical to the increment of the previous one, the green LED is turned on for 1 second.
 
-The overall **footprint of the receiver application** (including the devised library for nRF24) is **434 bytes (out of 1KiB available)** and it occupies 6 bytes in SRAM (out of 64).
+The overall **footprint of the receiver application** (including the devised library for nRF24) is **420 bytes (out of 1KiB available)** and it occupies 6 bytes in SRAM (out of 64).
