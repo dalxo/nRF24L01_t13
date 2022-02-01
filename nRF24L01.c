@@ -187,19 +187,22 @@ extern uint8_t shiftOutByte(uint8_t data) {
 		
 		"	shiftOutMSB_loop_%=:		\n\t"	// do {
 
-		"cbi		%0, %2				\n\t"	//NRF24L01_MOSI_CLR();
-		"sbrc		%3, 7				\n\t"	// skip next instruction if MSB in data is 0
-		"sbi		%0, %2				\n\t"	//NRF24L01_MOSI_SET();
-		"lsl		%3					\n\t"	// data <<= 1
-		"sbi		%0, %1				\n\t"	//NRF24L01_SCK_SET();
-		"cbi		%0, %1				\n\t"	//NRF24L01_SCK_CLR();
+		"cbi		%[port], %[mosi]	\n\t"	// NRF24L01_MOSI_CLR();
+		"sbrc		%[dataOut], 7		\n\t"	// skip next instruction if MSB in data is 0
+		"sbi		%[port], %[mosi]	\n\t"	// NRF24L01_MOSI_SET();
+		"lsl		%[dataOut]			\n\t"	// data <<= 1
+		"sbi		%[port], %[sck]		\n\t"	// NRF24L01_SCK_SET();
+		"cbi		%[port], %[sck]		\n\t"	// NRF24L01_SCK_CLR();
 			
 		// } while(--i)
 		"dec		r25					\n\t"
 		"brne		shiftOutMSB_loop_%=	\n\t"
-		:
-		:	"I"(_SFR_IO_ADDR(NRF24L01_PORT)),
-			"I"(NRF24L01_SCK), "I"(NRF24L01_MOSI), "r"(data)
+		
+		: // no output data
+		:	[port] "I" (_SFR_IO_ADDR(NRF24L01_PORT)),
+			[sck]  "I" (NRF24L01_SCK), 
+			[mosi] "I" (NRF24L01_MOSI), 
+			[dataOut] "r" (data)
 		: "r25");
 
 		return data;
@@ -210,35 +213,37 @@ extern uint8_t shiftOutByte(uint8_t data) {
 		uint8_t out;
 		asm volatile (
 		"ldi		r25, 8				\n\t"	// i = 8
-		"ldi		%0, 0				\n\t"	// out = 0
+		"ldi		%[dataOut], 0		\n\t"	// out = 0
 		
 		"	shiftOutMSB2_loop_%=:		\n\t"	// do {
-		"cbi		%3, %5				\n\t"	//NRF24L01_MOSI_IN();
-		"lsl		%0					\n\t"	//out <<= 1;
+		"cbi		%[dir], %[mosi]		\n\t"	// NRF24L01_MOSI_IN();
+		"lsl		%[dataOut]			\n\t"	// out <<= 1;
 			
-		"sbic		%2, %5				\n\t"	// if(NRF24L01_MOSI_READ())
-		"ori		%0, 0x01			\n\t"	//	out |= 0x01;
+		"sbic		%[in], %[mosi]		\n\t"	// if(NRF24L01_MOSI_READ())
+		"ori		%[dataOut], 0x01	\n\t"	//	out |= 0x01;
 
-		"sbi		%3, %5				\n\t"	//NRF24L01_MOSI_OUT();
+		"sbi		%[dir], %[mosi]		\n\t"	// NRF24L01_MOSI_OUT();
 
 			
-		"cbi		%1, %5				\n\t"	//NRF24L01_MOSI_CLR();
-		"sbrc		%6, 7				\n\t"	// skip next instruction if MSB in data is 0
-		"sbi		%1, %5				\n\t"	//NRF24L01_MOSI_SET();
+		"cbi		%[port], %[mosi]	\n\t"	// NRF24L01_MOSI_CLR();
+		"sbrc		%[dataIn], 7		\n\t"	// skip next instruction if MSB in data is 0
+		"sbi		%[port], %[mosi]	\n\t"	// NRF24L01_MOSI_SET();
 			
-		"lsl		%6					\n\t"	// data <<= 1
+		"lsl		%[dataIn]			\n\t"	// data <<= 1
 			
-		"sbi		%1, %4				\n\t"	//NRF24L01_SCK_SET();
-		"cbi		%1, %4				\n\t"	//NRF24L01_SCK_CLR();
+		"sbi		%[port], %[sck]		\n\t"	// NRF24L01_SCK_SET();
+		"cbi		%[port], %[sck]		\n\t"	// NRF24L01_SCK_CLR();
 			
 		// } while(--i)
 		"dec		r25					\n\t"
 		"brne		shiftOutMSB2_loop_%=	\n\t"
-		:	"=&r" (out)
-		:	"I"(_SFR_IO_ADDR(NRF24L01_PORT)),
-		"I"(_SFR_IO_ADDR(NRF24L01_INPORT)),
-		"I"(_SFR_IO_ADDR(NRF24L01_DDR)),
-		"I"(NRF24L01_SCK), "I"(NRF24L01_MOSI), "r"(data)
+		: [dataOut] "=&r" (out)
+		: [port] "I" (_SFR_IO_ADDR(NRF24L01_PORT)),
+		  [in] "I"(_SFR_IO_ADDR(NRF24L01_INPORT)),
+		  [dir] "I"(_SFR_IO_ADDR(NRF24L01_DDR)),
+		  [sck] "I"(NRF24L01_SCK), 
+		  [mosi] "I"(NRF24L01_MOSI), 
+		  [dataIn] "r"(data)
 		: "r25");
 
 		return out;	
@@ -252,25 +257,28 @@ extern uint8_t shiftOutByte(uint8_t data) {
 		
 		"	shiftOutMSB3_loop_%=:		\n\t"	// do {
 
-		"cbi		%1, %4				\n\t"	//NRF24L01_MOSI_CLR();		
-		"sbrc		%0, 7				\n\t"	// skip next instruction if MSB in data is 0
-		"sbi		%1, %4				\n\t"	//NRF24L01_MOSI_SET();
+		"cbi		%[port], %[mosi]	\n\t"	// NRF24L01_MOSI_CLR();		
+		"sbrc		%[dataOut], 7		\n\t"	// skip next instruction if MSB in data is 0
+		"sbi		%[port], %[mosi]	\n\t"	// NRF24L01_MOSI_SET();
 		
-		"lsl		%6					\n\t"	// data <<= 1
+		"lsl		%[dataIn]			\n\t"	// data <<= 1
 		
-		"sbic		%2, %5				\n\t"	// skip next instruction if MSB in data is 0
-		"sbr		%6, 0x01			\n\t"	// set bit
+		"sbic		%[in], %[miso]		\n\t"	// skip next instruction if MSB in data is 0
+		"sbr		%[dataIn], 0x01		\n\t"	// set bit
 		
-		"sbi		%1, %3				\n\t"	//NRF24L01_SCK_SET();
-		"cbi		%1, %3				\n\t"	//NRF24L01_SCK_CLR();
+		"sbi		%[port], %[sck]		\n\t"	// NRF24L01_SCK_SET();
+		"cbi		%[port], %[sck]		\n\t"	// NRF24L01_SCK_CLR();
 						
 		// } while(--i)
 		"dec		r25					\n\t"
 		"brne		shiftOutMSB3_loop_%=	\n\t"
-		:	"=r"(read)
-		:	"I"(_SFR_IO_ADDR(NRF24L01_PORT)),
-			"I"(_SFR_IO_ADDR(NRF24L01_INPORT)),
-			"I"(NRF24L01_SCK), "I"(NRF24L01_MOSI), "I"(NRF24L01_MISO), "r"(data)
+		:	[dataOut] "=r"(read)
+		:	[port] "I" (_SFR_IO_ADDR(NRF24L01_PORT)),
+			[in] "I"(_SFR_IO_ADDR(NRF24L01_INPORT)),
+			[sck] "I" (NRF24L01_SCK), 
+			[mosi] "I" (NRF24L01_MOSI), 
+			[miso] "I" (NRF24L01_MISO), 
+			[dataIn] "r" (data)
 		: "r25");
 	
 		return read;
