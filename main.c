@@ -76,7 +76,9 @@ int main() {
 	LED_CLR();
 	NRF24L01_DDR |= _BV(LED_PIN);	// set LED pin dir to output
 	
-	nrf24_init(); // initialize radio (UNDEFINED ==> POWER ON RESET ==> POWER DOWN)
+	nrf24_init(); // initialize radio (UNDEFINED ==> POWER ON RESET) 
+	
+	_delay_ms(20); // it takes 10.3ms to switch from POWER ON RESET ==> POWER DOWN
 	
 	nrf24_writeReg(W_REGISTER | RF_CH,    CHANNEL);
 	nrf24_writeReg(W_REGISTER | RF_SETUP, NRF24_PWR_MAX | NRF24_SPEED_250kbps); // 0dbm TX power, 250kbps
@@ -159,6 +161,7 @@ void testRecv() {
 	} msg;
 
 	uint32_t seqNumRx = 0;
+	
 
 	nrf24_writeReg(W_REGISTER | EN_AA,      NRF24_PIPE_0);  // en autoack
 	nrf24_writeReg(W_REGISTER | NRF_STATUS, NRF24_STATUS_CLEAR_ALL);  // clear status
