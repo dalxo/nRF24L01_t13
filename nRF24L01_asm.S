@@ -191,16 +191,38 @@ void nrf24_writeRegs(uint8_t cmd, const uint8_t *buff, uint8_t size) {
 */
 
 .global nrf24_writeRegs
-nrf24_writeRegs:	; void nrf24_writeRegs(uint8_t cmd, const uint8_t *buff, uint8_t size)
+nrf24_writeRegs:	; void nrf24_writeRegs_pgm(uint8_t cmd, const uint8_t *buff, uint8_t size);
 	rcall csnSetCrl			; // toggle CSN
 	movw	r30, r22		; // move pointer to buff to Z regs
 	rcall	shiftOutByte	; // in r24 is cmd, thus immediately call and execute CMD
+
+#ifdef NR24_READ_PROGMEM
+	bst		r20, 7			; // store flag to T reg
+	cbr		r20, 0x80		; // clear flag bit
+
+	WriteRegsLoop:			; // while loop to write data from buffer	
+
+	brtc WriteRegsLoopMem	; branch if T is 0
+
+	lpm		r24,	Z+		; // load to r24 byte from the PROGMEM (pointed by Z) and increment pointer
+	rjmp WriteRegsCall
+
+	WriteRegsLoopMem:
+	ld		r24,	Z+		; // load to r24 byte from the buffer (pointed by Z) and increment pointer
+
+	WriteRegsCall:
+	rcall	shiftOutByte	; // call shift out (note, r24 and r25 are modified)
+	dec	r20					; // --size;
+	brne	WriteRegsLoop	; // if size > 0 do loop
+#else
 
 	WriteRegsLoop:			; // while loop to write data from buffer
 	ld		r24,	Z+		; // load to r24 byte from the buffer (pointed by Z) and increment pointer
 	rcall	shiftOutByte	; // call shift out (note, r24 and r25 are modified)
 	dec	r20					; // --size;
 	brne	WriteRegsLoop	; // if size > 0 do loop
+
+#endif
 
 	rcall csnSetCrl			; // toggle CSN
 	ret

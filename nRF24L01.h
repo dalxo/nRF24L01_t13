@@ -44,6 +44,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define FIFTEEN_MICROSECONDS	15
 #define DELAY_POWER_UP_MILLIS	5
 
+#define NRF24_PROGMEM_MASK		0x80
+
 //------------------------------------------------------------------------
 // SPI Commands
 //------------------------------------------------------------------------

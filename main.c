@@ -50,6 +50,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <avr/io.h>
 #include <util/delay.h>
+#include <avr/pgmspace.h>
 
 #include "projdefs.h"
 #include "nRF24L01.h"
@@ -60,7 +61,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define RETRY	10	// 12
 
 #define FIVE_BYTES	5
-const uint8_t PIPE0_ADDRESS[] = "0link";	// pipe 0 address
+const uint8_t PIPE0_ADDRESS_PGM[] PROGMEM = "0link"; // pipe 0 address in progmem - don't forget to define macro NR24_READ_PROGMEM in projdefs.h to support it
 
 #define LED_SET()	asm("sbi %0, %1" :: "I" (_SFR_IO_ADDR(PORTB)), "I" (LED_PIN) )
 #define LED_CLR()	asm("cbi %0, %1" :: "I" (_SFR_IO_ADDR(PORTB)), "I" (LED_PIN) )
@@ -86,9 +87,11 @@ int main() {
 	nrf24_writeReg(W_REGISTER | EN_RXADDR, NRF24_PIPE_0);	// enable RX in pipe 0 for ACK packet
 	nrf24_writeReg(W_REGISTER | DYNPD,     NRF24_PIPE_0);   // enable dynamic payload in pipe 0	
 	nrf24_writeReg(W_REGISTER | FEATURE,   NRF24_FEATURE_EN_DPL); // enable dynamic payload length
-
-	nrf24_writeRegs(W_REGISTER | TX_ADDR,  PIPE0_ADDRESS, FIVE_BYTES);	// target pipe 0 address
-	nrf24_writeRegs(W_REGISTER | RX_ADDR_P0, PIPE0_ADDRESS, FIVE_BYTES);	// RX address on pipe 0
+	
+	// Target pipe 0 address from PROGMEM. Because we read value from PROGMEM, we have to add flag NRF24_PROGMEM_MASK to the size.
+	nrf24_writeRegs(W_REGISTER | TX_ADDR, PIPE0_ADDRESS_PGM, FIVE_BYTES | NRF24_PROGMEM_MASK); 	
+	// RX address on pipe 0 from PROGMEM. Because we read value from PROGMEM, we have to add flag NRF24_PROGMEM_MASK to the size.
+	nrf24_writeRegs(W_REGISTER | RX_ADDR_P0, PIPE0_ADDRESS_PGM, FIVE_BYTES | NRF24_PROGMEM_MASK); 
 
 	nrf24_cmd(FLUSH_TX); // clean TX FIFOs thoroughly
 	nrf24_cmd(FLUSH_RX); // clean RX FIFOs thoroughly

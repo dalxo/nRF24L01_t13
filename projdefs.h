@@ -44,9 +44,14 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define TRANSMITTER
 //#define RECEIVER
 
+
 //------------------------------------------------------------------------
 // Feature configuration for nRF24L01 driver
 //------------------------------------------------------------------------
+
+// Enable support for writing data to NRF registers directly from PROGMEM. It saves footprint.
+#define NR24_READ_PROGMEM
+
 #ifdef TRANSMITTER
 	
 	#ifdef RECEIVER
@@ -80,8 +85,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef NRF24L01_DO_NOT_USE_MISO
 	#define NRF24L01_MISO		PB4		// if shared then use NRF24L01_MOSI
 #endif
-
-
 
 //------------------------------------------------------------------------
 // Pin for LED indicator
