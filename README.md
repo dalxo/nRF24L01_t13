@@ -172,7 +172,7 @@ To indicate to nrf24_writeRegs that source buffer is in the PROGMEM, add to the 
 NRF24_PROGMEM_MASK
 ```
 
-The code that reads TX address (assuming NR24_READ_PROGMEM is declared in [projdefs.h](projdefs.h)), from the PROGMEM would look like:
+The code that reads TX address (assuming `NR24_READ_PROGMEM` is declared in [projdefs.h](projdefs.h)) from the PROGMEM would look like:
 ```C
 #include <avr/pgmspace.h>
 #define FIVE_BYTES	5
@@ -195,7 +195,7 @@ The transmitter combines the first (shared CE/CSN) and the third (uni-directiona
 
 The application every 2 seconds increments and sends 32-bit unsigned integer to pipe 0 on channel 120. LED turns on for 800ms to indicate the start of the period. The source code shows the entire procedure from powering on the radio, configuring the module, moving data into buffer, transmission, and power of the radio.
 
-The overall **footprint of the transmitter application** (including the devised library for nRF24) is **360 bytes (out of 1KiB available)** and it occupies 6 bytes in SRAM (out of 64).
+The overall **footprint of the transmitter application** (including the devised library for nRF24) is **360 bytes (out of 1KiB available)** and it occupies 0 bytes in SRAM (out of 64).
 
 
 ### Receiver
@@ -205,4 +205,4 @@ The receiver application does not utilize shared CE/CSN because the module works
 
 The application software pools every 100ms status register for new packets. If a packet has arrived, it is read into MCU, and status is cleared. If the received sequence number is identical to the increment of the previous one, the green LED is turned on for 1 second.
 
-The overall **footprint of the receiver application** (including the devised library for nRF24) is **408 bytes (out of 1KiB available)** and it occupies 6 bytes in SRAM (out of 64).
+The overall **footprint of the receiver application** (including the devised library for nRF24) is **408 bytes (out of 1KiB available)** and it occupies 0 bytes in SRAM (out of 64).
