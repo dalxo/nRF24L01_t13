@@ -157,6 +157,31 @@ void nrf24_writeRegs(uint8_t cmd, const uint8_t *buff, uint8_t size);
 
 The argumen *cmd* has identical meaning as with previous methdos. Pointer to a buffer and its size are self-explanatory. 
 
+### PROGMEM Support
+In some situations it helps to reduce the overll code footprint if some constants (such as TX/RX address) are stores in the PROGMEM rather than in the SRAM (which has to be initialized from the code segment, thus additional code added by a compiler). Storing constants in PROGMEM reduces SRAM usage and can reduce code footprint. Therefore, the library supports direct read of data from PROGMEM into nRF24 modules. The feature is availbale only in this function:
+```C
+void nrf24_writeRegs(uint8_t cmd, const uint8_t *buff, uint8_t size);
+```
+By default, this feature is disabled. To enbale it, declare the following macro in [projdefs.h](projdefs.h) file:
+```C
+#define NR24_READ_PROGMEM
+```
+
+To indicate to nrf24_writeRegs that source buffer is in the PROGMEM, add to the buffer size (3rd argument) the following flag:
+```C
+NRF24_PROGMEM_MASK
+```
+
+The code that reads TX address (assuming NR24_READ_PROGMEM is declared in [projdefs.h](projdefs.h)), from the PROGMEM would look like:
+```C
+#include <avr/pgmspace.h>
+#define FIVE_BYTES	5
+const uint8_t PIPE0_ADDRESS_PGM[] PROGMEM = "0link";
+
+nrf24_writeRegs(W_REGISTER | TX_ADDR, PIPE0_ADDRESS_PGM, FIVE_BYTES | NRF24_PROGMEM_MASK);
+```
+
+Enabling this feature adds extra code in the nRF24 library (10 bytes). If you do not use PROGMEM to read from to nRF24 registers, do not enable the feature.
 
 ## Demo
 Code for working example is in [main.c](main.c) and configuration in [projdefs.h](projdefs.h). The demo shows the whole API lifecycle and consists of both transmitter and receiver. Compilation for either of the application is selected by `#define TRANSMITTER` or `#define RECEIVER` macros. Transmitter periodically sends data (indicated with flashing LED) and receiver flashes LED when receives expected data (increment of the previous sequence number). The demo is fairly simple but shows all that is needed to send/receive any sort of data. 
@@ -170,7 +195,7 @@ The transmitter combines the first (shared CE/CSN) and the third (uni-directiona
 
 The application every 2 seconds increments and sends 32-bit unsigned integer to pipe 0 on channel 120. LED turns on for 800ms to indicate the start of the period. The source code shows the entire procedure from powering on the radio, configuring the module, moving data into buffer, transmission, and power of the radio.
 
-The overall **footprint of the transmitter application** (including the devised library for nRF24) is **372 bytes (out of 1KiB available)** and it occupies 6 bytes in SRAM (out of 64).
+The overall **footprint of the transmitter application** (including the devised library for nRF24) is **360 bytes (out of 1KiB available)** and it occupies 6 bytes in SRAM (out of 64).
 
 
 ### Receiver
@@ -180,4 +205,4 @@ The receiver application does not utilize shared CE/CSN because the module works
 
 The application software pools every 100ms status register for new packets. If a packet has arrived, it is read into MCU, and status is cleared. If the received sequence number is identical to the increment of the previous one, the green LED is turned on for 1 second.
 
-The overall **footprint of the receiver application** (including the devised library for nRF24) is **420 bytes (out of 1KiB available)** and it occupies 6 bytes in SRAM (out of 64).
+The overall **footprint of the receiver application** (including the devised library for nRF24) is **408 bytes (out of 1KiB available)** and it occupies 6 bytes in SRAM (out of 64).
