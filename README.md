@@ -158,7 +158,7 @@ void nrf24_writeRegs(uint8_t cmd, const uint8_t *buff, uint8_t size);
 The argumen *cmd* has identical meaning as with previous methdos. Pointer to a buffer and its size are self-explanatory. 
 
 ### PROGMEM Support
-In some situations it helps to reduce the overll code footprint if some constants (such as TX/RX address) are stores in the PROGMEM rather than in the SRAM (which has to be initialized from the code segment, thus additional code added by a compiler). Storing constants in PROGMEM reduces SRAM usage and can reduce code footprint. Therefore, the library supports direct read of data from PROGMEM into nRF24 modules. The feature is availbale only in this function:
+In some situations, it helps to reduce the overall code footprint if some constants (such as TX/RX address) are stored in the PROGMEM. To store constants in PROGMEM reduces SRAM usage and further reduces code footprint. Therefore, the library supports a direct read of data from PROGMEM into nRF24 modules. The feature is available only in this function:
 ```C
 void nrf24_writeRegs(uint8_t cmd, const uint8_t *buff, uint8_t size);
 ```
